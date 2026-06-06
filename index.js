@@ -7,7 +7,10 @@ const OpenAI = require("openai");
 const app = express();
 const pool = require("./db");
 
-app.use(cors());
+app.use(cors({
+  origin: "ai-chat-gc96.vercel.app",
+  credentials: true
+}));
 app.use(express.json());
 
 // const redisClient = createClient({
