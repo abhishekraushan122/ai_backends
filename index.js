@@ -8,7 +8,8 @@ const app = express();
 const pool = require("./db");
 
 app.use(cors({
-  origin: "ai-chat-gc96.vercel.app",
+  origin: "https://ai-chat-pied-six.vercel.app",
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 app.use(express.json());
