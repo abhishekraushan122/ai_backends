@@ -58,7 +58,7 @@ app.post("/chat", async (req, res) => {
     const orderResult = await pool.query(`
       SELECT *
       FROM neon_auth.orders
-      WHERE status = 'pending'
+      WHERE order_status = 'pending'
       LIMIT 20
     `);
 
