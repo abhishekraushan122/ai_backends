@@ -49,7 +49,7 @@ app.post("/chat", async (req, res) => {
     // console.log(models.data.map((m) => m.id),"test");
     const result = await pool.query(`
       SELECT *
-      FROM public.ecomaddproduct
+      FROM ecomaddproduct
       WHERE price::numeric <= 500
       LIMIT 5
     `);
@@ -57,8 +57,8 @@ app.post("/chat", async (req, res) => {
     // Pending Orders
     const orderResult = await pool.query(`
       SELECT *
-      FROM public.orders
-      WHERE order_status = 'pending'
+      FROM orders
+      WHERE status = 'pending'
       LIMIT 20
     `);
 
