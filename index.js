@@ -50,7 +50,7 @@ app.post("/chat", async (req, res) => {
     const result = await pool.query(`
       SELECT *
       FROM neon_auth.ecomaddproduct
-      WHERE price::numeric <= 500
+      WHERE price::numeric <= 1100
       LIMIT 5
     `);
 
@@ -58,7 +58,7 @@ app.post("/chat", async (req, res) => {
     const orderResult = await pool.query(`
       SELECT *
       FROM neon_auth.orders
-      WHERE order_status = 'pending'
+      WHERE order_status = 'Pending'
       LIMIT 20
     `);
 
