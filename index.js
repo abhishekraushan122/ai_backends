@@ -58,21 +58,21 @@ app.post("/chat", async (req, res) => {
     const orderResult = await pool.query(`
       SELECT *
       FROM neon_auth.orders
-      WHERE order_status = 'Pending'
+      WHERE order_status = 'pending'
       LIMIT 20
     `);
 
-// const product_rating = await pool.query(`
-//   SELECT
-//     p.product_id,
-//     p.productname,
-//     p.price,
-//     r.star_rated
-//   FROM abhishek.ratings r
-//   JOIN abhishek.ecomaddproduct p
-//     ON p.product_id = r.product_id
-//   WHERE r.star_rated::numeric = 4
-// `);
+const product_rating = await pool.query(`
+  SELECT
+    p.product_id,
+    p.productname,
+    p.price,
+    r.star_rated
+  FROM neon_auth.ratings r
+  JOIN neon_auth.ecomaddproduct p
+    ON p.product_id = r.product_id
+  WHERE r.star_rated::numeric = 4
+`);
     const dbData =
       result.rows.length > 0
         ? JSON.stringify(result.rows, null, 2)
@@ -83,10 +83,10 @@ app.post("/chat", async (req, res) => {
         ? JSON.stringify(orderResult.rows, null, 4)
         : "No pending orders found.";
 
-    // const productRatedData =
-    //   product_rating.rows.length > 0
-    //     ? JSON.stringify(product_rating.rows, null, 3)
-    //     : "No matching records found.";
+    const productRatedData =
+      product_rating.rows.length > 0
+        ? JSON.stringify(product_rating.rows, null, 3)
+        : "No matching records found.";
     
     const response = await client.chat.completions.create({
       model: "openrouter/owl-alpha",
@@ -101,7 +101,9 @@ app.post("/chat", async (req, res) => {
 
           Pending Orders:
           ${orderData}
-          
+
+          Product Ratings:
+          ${productRatedData}
 
           Rules:
           - Use only the provided database data.
