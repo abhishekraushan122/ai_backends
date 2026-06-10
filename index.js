@@ -7,7 +7,13 @@ const OpenAI = require("openai");
 const app = express();
 const pool = require("./db");
 
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5174", "https://ai-chat-pied-six.vercel.app"],
+    methods: ["GET", "POST", "PUT", "PATCH"],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 // const redisClient = createClient({
@@ -40,73 +46,77 @@ const client = new OpenAI({
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
-    // const models = await client.models.list();
+    const userMessage = message.toLowerCase();
 
-    // console.log(models.data.map((m) => m.id),"test");
-    const result = await pool.query(`
-      SELECT *
-      FROM abhishek.ecomaddproduct
-      WHERE price::numeric <= 500
-      LIMIT 5
-    `);
+    let data = "No data found.";
 
-    // Pending Orders
-    const orderResult = await pool.query(`
-      SELECT *
-      FROM abhishek.orders
-      WHERE order_status = 'pending'
-      LIMIT 20
-    `);
+    if (userMessage.includes("report")) {
+      const reportResult = await pool.query(`
+        SELECT
+          COUNT(*) AS total_products,
+          AVG(price::numeric) AS avg_price,
+          MIN(price::numeric) AS min_price,
+          MAX(price::numeric) AS max_price
+        FROM neon_auth.ecomaddproduct
+      `);
 
-const product_rating = await pool.query(`
-  SELECT
-    p.product_id,
-    p.productname,
-    p.price,
-    r.star_rated
-  FROM abhishek.ratings r
-  JOIN abhishek.ecomaddproduct p
-    ON p.product_id = r.product_id
-  WHERE r.star_rated::numeric = 4
-`);
-    const dbData =
-      result.rows.length > 0
-        ? JSON.stringify(result.rows, null, 2)
-        : "No matching records found.";
+      data = JSON.stringify(reportResult.rows, null, 2);
+    } else if (
+      userMessage.includes("pending order") ||
+      userMessage.includes("pending orders")
+    ) {
+      const orderResult = await pool.query(`
+        SELECT *
+        FROM neon_auth.orders
+        WHERE order_status = 'pending'
+        LIMIT 20
+      `);
 
-    const orderData =
-      orderResult.rows.length > 0
-        ? JSON.stringify(orderResult.rows, null, 4)
-        : "No pending orders found.";
+      data = JSON.stringify(orderResult.rows, null, 2);
+    } else if (
+      userMessage.includes("rating") ||
+      userMessage.includes("rated product")
+    ) {
+      const ratingResult = await pool.query(`
+        SELECT
+          p.product_id,
+          p.productname,
+          p.price,
+          r.star_rated
+        FROM neon_auth.ratings r
+        JOIN neon_auth.ecomaddproduct p
+          ON p.product_id = r.product_id
+      `);
 
-    const productRatedData =
-      product_rating.rows.length > 0
-        ? JSON.stringify(product_rating.rows, null, 3)
-        : "No matching records found.";
-    
+      data = JSON.stringify(ratingResult.rows, null, 2);
+    } else if (
+      userMessage.includes("product") ||
+      userMessage.includes("products")
+    ) {
+      const productResult = await pool.query(`
+        SELECT *
+        FROM neon_auth.ecomaddproduct
+        LIMIT 20
+      `);
+
+      data = JSON.stringify(productResult.rows, null, 2);
+    }
+
     const response = await client.chat.completions.create({
       model: "openrouter/owl-alpha",
       messages: [
         {
           role: "system",
           content: `
-          You are an assistant that answers using PostgreSQL data.
+            You are an assistant that answers using database results.
 
-          Database Results:
-          ${dbData}
+            Database Data:
+            ${data}
 
-          Pending Orders:
-          ${orderData}
-          
-          Product Rating:
-          ${productRatedData}
-
-          Rules:
-          - Use only the provided database data.
-          - If the user asks about products, answer from Products.
-          - If the user asks about pending orders, answer from Pending Orders.
-          - If information is unavailable, reply:
-            "I couldn't find that information in the database."
+            Rules:
+            - Use only the provided data.
+            - If no relevant data exists, say:
+              "I couldn't find that information in the database."
           `,
         },
         {
@@ -119,9 +129,9 @@ const product_rating = await pool.query(`
     res.json({
       reply: response.choices[0].message.content,
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
 });
 
