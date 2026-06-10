@@ -7,7 +7,6 @@ const OpenAI = require("openai");
 const app = express();
 const pool = require("./db");
 
-<<<<<<< HEAD
 app.use(
   cors({
     origin: ["http://localhost:5174", "https://ai-chat-pied-six.vercel.app"],
@@ -15,13 +14,6 @@ app.use(
     credentials: true,
   }),
 );
-=======
-app.use(cors({
-  origin: "https://ai-chat-pied-six.vercel.app",
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true
-}));
->>>>>>> 8bb86b75ede847408a96ea9b713c269138fd02f1
 app.use(express.json());
 
 // const redisClient = createClient({
