@@ -18,5 +18,12 @@ const pool = new Pool({
     rejectUnauthorized: false,
   },
 });
-
+pool.connect()
+  .then(client => {
+    console.log("Database connected");
+    client.release();
+  })
+  .catch(err => {
+    console.error("Database connection error:", err);
+  });
 module.exports = pool;
